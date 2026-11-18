@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Draw the competition image with Pillow; no external images or network access."""
+"""Compose the competition image with Pillow and the prepared hero illustration."""
 
 from pathlib import Path
 import math
@@ -130,86 +130,78 @@ def robot(x, y):
     line([(x+29,y+65),(x+61,y+65)], TEAL, 3)
 
 
-def bridge():
-    """An editorial diagram: a road span broken and tipped into the sea."""
-    box((32, 294, 992, 444), PALE)
-    polygon([(32,389),(123,381),(238,386),(359,381),(459,390),
-             (602,385),(714,390),(844,381),(992,387),(992,411),(32,411)],
-            "#AFCCCB")
-    box((32, 402, 992, 444), TEAL)
-    for px in (92, 222, 352, 482, 764, 894):
-        polygon([(px-8,361),(px+8,361),(px+12,418),(px-12,418)], "#8EABA9")
-    # Smoke rises at the broken joint; muted flat shapes preserve contrast.
-    for bounds in ((530,329,560,367), (519,315,552,349),
-                   (540,308,570,337), (554,299,581,324)):
-        ellipse(bounds, "#9AA5A1")
-    polygon([(32,350),(528,350),(536,356),(525,363),(32,363)], INK)
-    polygon([(711,350),(992,350),(992,363),(703,363),(711,358)], INK)
-    line([(32,346),(525,346)], "#668B91", 3)
-    line([(715,346),(992,346)], "#668B91", 3)
-    for px in list(range(50, 525, 25)) + list(range(725, 990, 25)):
-        line([(px,345),(px,351)], INK, 2)
-    # One deck segment falls diagonally into the water, separated at both ends.
-    polygon([(549,359),(559,350),(677,419),(668,432)], INK)
-    line([(559,353),(676,421)], "#8EABA9", 3)
-    for px, py in ((660,433),(692,432),(727,423)):
-        line([(px-9,py),(px,py-4),(px+9,py)], "#D3E5E0", 2)
-    for px, py in ((66,429),(179,416),(316,433),(437,421),(840,431),(938,419)):
-        line([(px,py),(px+39,py)], "#6A9B9F", 2)
-    text("KERCH BRIDGE", 47, 306, 18, "bold", bottom=331)
-    text("RUSSIA–CRIMEA LINK", 786, 307, 16, "bold", right=978, bottom=331)
+def story(y, headline, summary, icon):
+    global draw
 
-
-def story(y, headline, summary, icon, headline_size=35):
     line([(32, y), (992, y)], RULE, 1)
-    icon(41, y + 7)
-    text(headline, 146, y + 7, headline_size, "bold", bottom=y + 38)
+    layer = Image.new("RGBA", (100 * SCALE, 85 * SCALE), (0, 0, 0, 0))
+    page_draw = draw
+    try:
+        draw = ImageDraw.Draw(layer)
+        icon(5, 5)
+    finally:
+        draw = page_draw
+    layer = layer.resize((72 * SCALE, 60 * SCALE), Image.Resampling.LANCZOS)
+    image.paste(layer, (36 * SCALE, (y + 5) * SCALE), layer)
+    text(headline, 146, y + 5, 26, "bold", bottom=y + 33)
     for i, sentence in enumerate(summary):
-        text(sentence, 146, y + 39 + i * 23, 23, bottom=y + 84)
+        text(sentence, 146, y + 33 + i * 18, 18, bottom=y + 69)
 
 
 def main():
-    text("THE GLOBAL DAILY", 32, 21, 78, "masthead", bottom=91)
-    line([(32, 98), (992, 98)], INK, 4)
-    text("TUESDAY, NOVEMBER 17, 2026", 32, 111, 34, "bold", bottom=145)
-    line([(32, 151), (992, 151)], INK, 1)
-    text("UKRAINE STRIKE COLLAPSES", 32, 166, 61, "bold", RED, bottom=217)
-    text("CRIMEA BRIDGE SPAN", 32, 228, 68, "bold", INK, bottom=284)
-    bridge()
-    text("Zelenskyy hails an unprecedented operation, weeks in the making.",
-         32, 456, 25, bottom=480)
-    text("Kremlin vows to rebuild. In reply, Russian missiles hit Kyiv’s",
-         32, 485, 25, bottom=509)
-    text("bridges over the Dnipro River.", 32, 514, 25, bottom=538)
+    text("THE GLOBAL DAILY", 32, 12, 60, "masthead", bottom=80)
+    line([(32, 80), (992, 80)], INK, 4)
+    text("TUESDAY, NOVEMBER 17, 2026", 32, 89, 28, "bold", bottom=124)
+    line([(32, 124), (992, 124)], INK, 1)
+    text("UKRAINE STRIKE COLLAPSES", 32, 134, 52, "bold", RED, bottom=192)
+    text("CRIMEA BRIDGE SPAN", 32, 192, 58, "bold", INK, bottom=262)
 
-    story(550, "HORMUZ: TWO TANKERS HIT MINES", [
+    with Image.open(ROOT / "assets" / "hero.jpg") as source:
+        hero = source.convert("RGB")
+    hero_size = (960 * SCALE, 288 * SCALE)
+    if hero.size != hero_size:
+        hero = hero.resize(hero_size, Image.Resampling.LANCZOS)
+    image.paste(hero, (32 * SCALE, 262 * SCALE))
+    box((32, 262, 992, 550), None, INK, 3)
+
+    text("Zelenskyy hails an unprecedented operation, weeks in the making.",
+         32, 562, 24, bottom=588)
+    text("Kremlin vows to rebuild. In reply, Russian missiles hit Kyiv’s",
+         32, 588, 24, bottom=614)
+    text("bridges over the Dnipro River.", 32, 614, 24, bottom=648)
+
+    story(648, "HORMUZ: TWO TANKERS HIT MINES", [
         "Iran’s Guards report mine hits; 3rd U.S. carrier in region.",
         "Iranian drones aimed at U.S. radar base in Bahrain intercepted.",
     ], tanker)
-    story(637, "TRUMP IN MANILA FOR ASEAN", [
+    story(717, "TRUMP IN MANILA FOR ASEAN", [
         "Asia trip ends in China for talks involving Xi and Putin.",
         "Joint trade statement signed with Thailand.",
     ], airplane)
-    story(724, "VULCAN FAILS: 40 AMAZON SATELLITES LOST", [
+    story(786, "VULCAN FAILS: 40 AMAZON SATELLITES LOST", [
         "ULA rocket fails in flight, destroying 40 Amazon Leo",
         "internet satellites.",
     ], rocket)
-    story(811, "JAPAN SCRAMBLES JETS, PROTESTS", [
+    story(855, "JAPAN SCRAMBLES JETS, PROTESTS", [
         "Two suspected Russian aircraft violate Japanese airspace;",
         "Tokyo responds with fighters and a protest.",
     ], fighter)
-    story(898, "128 STATES DEBATE AUTONOMOUS ARMS BAN", [
+    story(924, "128 STATES DEBATE AUTONOMOUS ARMS BAN", [
         "UN delegates in Geneva debate a treaty banning",
         "lethal autonomous weapons.",
     ], robot)
 
-    line([(32, 988), (992, 988)], INK, 2)
-    text("NEWS BRIEF: BBC / AP / REUTERS", 32, 998, 15, "bold", bottom=1016)
-    text("ILLUSTRATED DAILY SUMMARY", 755, 998, 15, "bold", bottom=1016)
+    line([(32, 1000), (992, 1000)], INK, 2)
+    text("NEWS BRIEF: BBC / AP / REUTERS", 32, 1006, 13, "bold", bottom=1024)
+    text("ILLUSTRATED DAILY SUMMARY", 755, 1006, 13, "bold", bottom=1024)
     final = image.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     final.save(OUTPUT, format="PNG", optimize=True)
     size = OUTPUT.stat().st_size
+    if size > 1048576:
+        final = final.quantize(colors=256, method=Image.Quantize.MEDIANCUT)
+        final.save(OUTPUT, format="PNG", optimize=True)
+        size = OUTPUT.stat().st_size
     assert size <= 1048576, f"PNG exceeds 1 MiB: {size} bytes"
     with Image.open(OUTPUT) as check:
         assert check.format == "PNG" and check.size == (1024, 1024)

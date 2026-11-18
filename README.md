@@ -2,15 +2,18 @@
 
 A make.fun competition entry summarizing the world news of Tuesday,
 November 17, 2026 in one illustrated newspaper front page. The finished
-image is `assets/entry.png`: a 1024 × 1024 RGB PNG, 413,187 bytes, below
+image is `assets/entry.png`: a 1024 × 1024 RGB PNG, 737,165 bytes, below
 the 1 MiB limit.
 
-The bridge strike leads the page with a large headline and an original
-diagram of the broken Kerch Bridge span. Five illustrated news briefs
+The bridge strike leads the page with a large headline and an AI-generated
+editorial illustration of a Crimea Bridge span collapsed and burning.
+The full supplied illustration is cropped and resized by `prep_hero.py`
+into the stored asset `assets/hero.jpg`. Five illustrated news briefs
 cover Hormuz, Trump's Asia trip, the Vulcan failure, Japan's airspace,
 and the Geneva debate on autonomous weapons. Flat colors, strong contrast,
 and large headlines help the main stories remain readable at 300 pixels wide.
-The bridge and icons are editorial illustrations, not photographs.
+The five brief icons are drawn with Pillow. The bridge and icons are
+editorial illustrations, not photographs.
 
 ## News sources
 
@@ -38,7 +41,7 @@ for November 17, 2026:
 
 No network requests were made. The supplied brief did not include article
 URLs; none have been invented, and the reporting was not independently
-retrieved. No external images are used.
+retrieved.
 
 ## Run the entry
 
@@ -60,7 +63,7 @@ The directory is created if necessary. After copying, the program verifies
 that the destination byte count matches the source and prints one line:
 
 ```text
-Copied entry.png: 413187 bytes verified.
+Copied entry.png: 737165 bytes verified.
 ```
 
 The source asset can be located regardless of the current working directory.
@@ -75,19 +78,28 @@ Liberation Sans fonts under `/usr/share/fonts/truetype/`:
 python3 generate_image.py
 ```
 
-It draws at twice the final resolution, downsamples to 1024 × 1024,
+The stored hero asset is a 1920 × 576 JPEG, 229,445 bytes. The one-off
+`prep_hero.py` script reads the full supplied illustration from its original
+path outside this repository, crops `(86, 560, 1836, 1085)`, resizes with
+LANCZOS, and saves `assets/hero.jpg` at JPEG quality 88. The full source PNG
+is not bundled. Regenerating the front page uses the stored JPEG and does
+not require the full illustration.
+
+`generate_image.py` draws at twice the final resolution, downsamples to 1024 × 1024,
 checks every text box for overflow, and verifies the PNG dimensions and
-file-size limit. Fonts, the Pillow version, and its PNG encoder can affect
+file-size limit. If the optimized PNG exceeds 1 MiB, it uses a 256-color
+MEDIANCUT quantization fallback. The current output is RGB and does not
+require quantization. Fonts, the Pillow version, and its PNG encoder can affect
 the bytes produced by regeneration; the bundled asset is the competition
 output.
 
 ## Validation
 
-The initial copy implementation passed a two-directory output test. The
-byte-count verification and confirmation were then added and the test
-was repeated. Finally, the five secondary headlines were enlarged from
-31 to 35 pixels, their spacing adjusted, and the image regenerated and
-inspected at full size and at 300 pixels wide.
+The front page was regenerated with the prepared AI illustration and the
+revised layout, then visually inspected at full size. All 24 page text
+strings were checked character-for-character against the previous generator;
+the five icon functions are unchanged. The previous bridge diagram and its
+two labels were removed.
 
 The final two runs used separate temporary directories with previously
 absent nested output folders, ran from outside the repository, and produced
@@ -96,9 +108,9 @@ one-line confirmation.
 
 - Format: PNG, RGB
 - Dimensions: 1024 × 1024 pixels
-- Size: 413,187 bytes (limit: 1,048,576)
+- Size: 737,165 bytes (limit: 1,048,576)
 - SHA-256 of the source and both final outputs:
-  `c78ff7ed1235ee4da79b1b650fb53ae9b22f2bbfcf3869f8aeb2c4339eff0626`
+  `46d6639f5cdbfe2c434447f007db467ab0d23595b25a72e39f2902a39576a5e4`
 
 Local checks ran with Python 3.12.3 and Pillow 10.2.0; Python 3.13 was
 not installed in the build environment. `main.py` uses standard-library
@@ -107,6 +119,8 @@ APIs supported by Python 3.13.
 ## Files and license
 
 - `assets/entry.png` — the finished competition image
+- `assets/hero.jpg` — the cropped and resized AI-generated editorial illustration
+- `prep_hero.py` — one-off Pillow preparation script for the supplied illustration
 - `generate_image.py` — local Pillow drawing source
 - `main.py` — standard-library competition entry point
 - `.makefun/owner.json` — competition wallet metadata
